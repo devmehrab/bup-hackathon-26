@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Zap, Activity, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { checkHealth } from '../lib/api-client';
 
 export function Navbar() {
@@ -31,48 +31,41 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-50 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center space-x-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-cyan-500 text-white shadow-lg shadow-emerald-500/20">
-            <Zap className="h-6 w-6" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-emerald-400">
+            <Zap className="h-4 w-4 fill-emerald-400/20" />
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-bold tracking-tight text-white sm:text-lg">
-                BUP Smart Campus
-              </span>
-              <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-400 border border-emerald-500/20">
-                CSE FEST 2026
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              LLM-Assisted Energy Directive Interpretation & Schedule Optimizer
-            </p>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-semibold tracking-tight text-white">
+              BUP Energy Optimizer
+            </span>
+            <span className="hidden sm:inline-block rounded-md bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
+              CSE FEST 2026
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 rounded-full border border-slate-800 bg-slate-900/90 px-3 py-1 text-xs">
-            <Activity className="h-3.5 w-3.5 text-slate-400" />
-            <span className="text-slate-400">API Service:</span>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 rounded-full border border-zinc-800/80 bg-zinc-900/60 px-2.5 py-1 text-xs">
             {healthStatus === 'checking' && (
-              <span className="flex items-center text-amber-400">
-                <span className="mr-1.5 h-2 w-2 animate-pulse rounded-full bg-amber-400" />
-                Checking
-              </span>
+              <>
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+                <span className="text-zinc-400 text-[11px]">Connecting...</span>
+              </>
             )}
             {healthStatus === 'ok' && (
-              <span className="flex items-center font-medium text-emerald-400">
-                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                Online (HTTP 200)
-              </span>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <span className="text-zinc-300 text-[11px]">API Online</span>
+              </>
             )}
             {healthStatus === 'error' && (
-              <span className="flex items-center font-medium text-rose-400">
-                <AlertTriangle className="mr-1 h-3.5 w-3.5" />
-                Offline
-              </span>
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                <span className="text-zinc-400 text-[11px]">API Offline</span>
+              </>
             )}
           </div>
         </div>

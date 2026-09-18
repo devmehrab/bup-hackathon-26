@@ -3,13 +3,9 @@
 import React, { useState } from 'react';
 import {
   Sliders,
-  Battery,
-  FileText,
   Play,
   Plus,
   Trash2,
-  Sparkles,
-  Layers,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -29,6 +25,14 @@ interface ScenarioEditorProps {
   isLoading: boolean;
 }
 
+const QUICK_PROMPTS = [
+  { label: 'Solar Curtailment', text: 'Solar output will drop to about 20% from 1 PM to 3 PM.' },
+  { label: 'No Charge Window', text: 'Do not charge the battery between 2 PM and 4 PM.' },
+  { label: 'Battery Reserve', text: 'Keep at least 120 kWh in reserve from 6 PM until 9 PM.' },
+  { label: 'Grid Cap', text: 'Grid import may not exceed 100 kWh between 2 PM and 4 PM.' },
+  { label: 'Irrelevant Note', text: 'The cafeteria menu changes tomorrow.' }
+];
+
 export function ScenarioEditor({
   scenarioId,
   setScenarioId,
@@ -41,11 +45,13 @@ export function ScenarioEditor({
   onOptimize,
   isLoading
 }: ScenarioEditorProps) {
-  const [showHoursTable, setShowHoursTable] = useState(false);
+  const [showAdvancedHours, setShowAdvancedHours] = useState(false);
+  const [activePresetId, setActivePresetId] = useState<string>(SCENARIO_PRESETS[0].id);
 
   const applyPreset = (presetId: string) => {
     const preset = SCENARIO_PRESETS.find((p) => p.id === presetId);
     if (preset) {
+      setActivePresetId(presetId);
       setScenarioId(preset.scenario_id);
       setOperatorNotes([...preset.operator_notes]);
       setBattery({ ...preset.battery });
@@ -71,6 +77,17 @@ export function ScenarioEditor({
     }
   };
 
+  const addQuickPrompt = (text: string) => {
+    if (operatorNotes.length < 3) {
+      setOperatorNotes([...operatorNotes, text]);
+    } else {
+      // replace the last note if max 3
+      const updated = [...operatorNotes];
+      updated[updated.length - 1] = text;
+      setOperatorNotes(updated);
+    }
+  };
+
   const updateHourField = (hIndex: number, field: keyof HourlyScenarioInput, val: number) => {
     setHours((prev) => {
       const copy = [...prev];
@@ -80,186 +97,69 @@ export function ScenarioEditor({
   };
 
   return (
-    <div className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-        <div className="flex items-center space-x-2">
-          <Sliders className="h-5 w-5 text-emerald-400" />
-          <h2 className="text-lg font-bold text-white">Scenario Configuration</h2>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <span className="text-xs text-slate-400">Load Benchmark Preset:</span>
-          <div className="flex space-x-1.5">
-            {SCENARIO_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => applyPreset(preset.id)}
-                className="rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-200 transition-all hover:border-emerald-500 hover:text-emerald-400"
-              >
-                {preset.scenario_id}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 backdrop-blur-sm space-y-5">
+      {/* Benchmark Presets Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-zinc-800/80">
         <div>
-          <label className="block text-xs font-semibold text-slate-300">Scenario ID</label>
-          <input
-            type="text"
-            value={scenarioId}
-            onChange={(e) => setScenarioId(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-mono"
-          />
+          <h2 className="text-sm font-semibold text-white">Scenario Configuration</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">Select a challenge benchmark or craft custom directives</p>
         </div>
 
-        <div className="sm:col-span-2">
-          <label className="block text-xs font-semibold text-slate-300">Quick Prompt Chips</label>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            <button
-              onClick={() => {
-                if (operatorNotes.length < 3) {
-                  setOperatorNotes([...operatorNotes, 'Solar output will drop to about 20% from 1 PM to 3 PM.']);
-                }
-              }}
-              className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-300 hover:bg-amber-500/20"
-            >
-              + Solar -80% (1-3 PM)
-            </button>
-            <button
-              onClick={() => {
-                if (operatorNotes.length < 3) {
-                  setOperatorNotes([...operatorNotes, 'Do not charge the battery between 2 PM and 4 PM.']);
-                }
-              }}
-              className="rounded-md border border-rose-500/30 bg-rose-500/10 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-500/20"
-            >
-              + No Charge (2-4 PM)
-            </button>
-            <button
-              onClick={() => {
-                if (operatorNotes.length < 3) {
-                  setOperatorNotes([...operatorNotes, 'Keep at least 120 kWh in reserve from 6 PM until 9 PM.']);
-                }
-              }}
-              className="rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-300 hover:bg-blue-500/20"
-            >
-              + Reserve 120 kWh (6-9 PM)
-            </button>
-            <button
-              onClick={() => {
-                if (operatorNotes.length < 3) {
-                  setOperatorNotes([...operatorNotes, 'Grid import may not exceed 100 kWh between 2 PM and 4 PM.']);
-                }
-              }}
-              className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-1 text-[11px] text-purple-300 hover:bg-purple-500/20"
-            >
-              + Max Grid 100 kWh
-            </button>
-            <button
-              onClick={() => {
-                if (operatorNotes.length < 3) {
-                  setOperatorNotes([...operatorNotes, 'The cafeteria menu changes tomorrow.']);
-                }
-              }}
-              className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] text-slate-300 hover:bg-slate-700"
-            >
-              + Cafeteria No-op
-            </button>
-          </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {SCENARIO_PRESETS.map((p) => {
+            const isActive = activePresetId === p.id && scenarioId === p.scenario_id;
+            return (
+              <button
+                key={p.id}
+                onClick={() => applyPreset(p.id)}
+                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                  isActive
+                    ? 'bg-zinc-100 text-zinc-950 font-semibold shadow-sm'
+                    : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                }`}
+              >
+                {p.scenario_id}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4">
-        <div className="flex items-center space-x-2 border-b border-slate-800/80 pb-2.5">
-          <Battery className="h-4 w-4 text-cyan-400" />
-          <h3 className="text-sm font-semibold text-white">Battery Storage Parameters</h3>
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <div>
-            <label className="block text-[11px] text-slate-400">Capacity (kWh)</label>
-            <input
-              type="number"
-              value={battery.capacity_kwh}
-              onChange={(e) => setBattery({ ...battery, capacity_kwh: parseFloat(e.target.value) || 0 })}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] text-slate-400">Initial Energy (kWh)</label>
-            <input
-              type="number"
-              value={battery.initial_energy_kwh}
-              onChange={(e) => setBattery({ ...battery, initial_energy_kwh: parseFloat(e.target.value) || 0 })}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] text-slate-400">Base Reserve (kWh)</label>
-            <input
-              type="number"
-              value={battery.minimum_energy_kwh}
-              onChange={(e) => setBattery({ ...battery, minimum_energy_kwh: parseFloat(e.target.value) || 0 })}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] text-slate-400">Max Charge (kWh/h)</label>
-            <input
-              type="number"
-              value={battery.max_charge_kwh_per_hour}
-              onChange={(e) => setBattery({ ...battery, max_charge_kwh_per_hour: parseFloat(e.target.value) || 0 })}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] text-slate-400">Max Discharge (kWh/h)</label>
-            <input
-              type="number"
-              value={battery.max_discharge_kwh_per_hour}
-              onChange={(e) => setBattery({ ...battery, max_discharge_kwh_per_hour: parseFloat(e.target.value) || 0 })}
-              className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-white font-mono"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
-          <div className="flex items-center space-x-2">
-            <FileText className="h-4 w-4 text-emerald-400" />
-            <h3 className="text-sm font-semibold text-white">Natural Language Operator Notes (1 to 3)</h3>
-          </div>
+      {/* Operator Notes Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-zinc-300">
+            Operator Notes <span className="text-zinc-500 font-normal font-mono">({operatorNotes.length}/3)</span>
+          </label>
           {operatorNotes.length < 3 && (
             <button
               onClick={addNote}
-              className="flex items-center space-x-1 rounded-md bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20"
+              className="flex items-center space-x-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
             >
-              <Plus className="h-3 w-3" />
-              <span>Add Note</span>
+              <Plus className="h-3.5 w-3.5" />
+              <span>Add directive</span>
             </button>
           )}
         </div>
 
-        <div className="mt-3 space-y-2.5">
+        <div className="space-y-2">
           {operatorNotes.map((note, idx) => (
             <div key={idx} className="flex items-center space-x-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300 font-mono">
-                #{idx}
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800 text-xs font-mono text-zinc-400">
+                {idx + 1}
               </span>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => handleNoteChange(idx, e.target.value)}
-                placeholder={`Operator directive note ${idx + 1}...`}
-                className="flex-1 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                placeholder="Type natural-language operator note (e.g. Solar will drop to 20% between 1 PM and 3 PM)..."
+                className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all"
               />
               {operatorNotes.length > 1 && (
                 <button
                   onClick={() => removeNote(idx)}
-                  className="p-1.5 text-slate-500 hover:text-rose-400"
+                  className="p-2 text-zinc-500 hover:text-rose-400 transition-colors rounded-lg hover:bg-zinc-800/40"
+                  title="Remove note"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -267,42 +167,117 @@ export function ScenarioEditor({
             </div>
           ))}
         </div>
+
+        {/* Quick prompt suggestions */}
+        <div className="flex items-center gap-1.5 flex-wrap pt-1">
+          <span className="text-[11px] text-zinc-500 mr-1">Quick insert:</span>
+          {QUICK_PROMPTS.map((qp, i) => (
+            <button
+              key={i}
+              onClick={() => addQuickPrompt(qp.text)}
+              className="rounded-md border border-zinc-800/80 bg-zinc-900/50 px-2 py-0.5 text-[11px] text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-all"
+            >
+              + {qp.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div>
+      {/* Battery & Scenario Parameters */}
+      <div className="pt-2 border-t border-zinc-800/60">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+          <div>
+            <label className="block text-[11px] text-zinc-400">Scenario ID</label>
+            <input
+              type="text"
+              value={scenarioId}
+              onChange={(e) => setScenarioId(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400">Capacity (kWh)</label>
+            <input
+              type="number"
+              value={battery.capacity_kwh}
+              onChange={(e) => setBattery({ ...battery, capacity_kwh: parseFloat(e.target.value) || 0 })}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400">Initial Energy</label>
+            <input
+              type="number"
+              value={battery.initial_energy_kwh}
+              onChange={(e) => setBattery({ ...battery, initial_energy_kwh: parseFloat(e.target.value) || 0 })}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400">Min Reserve</label>
+            <input
+              type="number"
+              value={battery.minimum_energy_kwh}
+              onChange={(e) => setBattery({ ...battery, minimum_energy_kwh: parseFloat(e.target.value) || 0 })}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400">Max Charge/h</label>
+            <input
+              type="number"
+              value={battery.max_charge_kwh_per_hour}
+              onChange={(e) => setBattery({ ...battery, max_charge_kwh_per_hour: parseFloat(e.target.value) || 0 })}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-zinc-400">Max Discharge/h</label>
+            <input
+              type="number"
+              value={battery.max_discharge_kwh_per_hour}
+              onChange={(e) => setBattery({ ...battery, max_discharge_kwh_per_hour: parseFloat(e.target.value) || 0 })}
+              className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-xs text-white font-mono focus:border-zinc-600 focus:outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Collapsible 24-Hour Profile */}
+      <div className="pt-2 border-t border-zinc-800/60">
         <button
           type="button"
-          onClick={() => setShowHoursTable(!showHoursTable)}
-          className="flex items-center justify-between w-full rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-900/60"
+          onClick={() => setShowAdvancedHours(!showAdvancedHours)}
+          className="flex items-center justify-between w-full py-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
         >
           <span className="flex items-center space-x-2">
-            <Layers className="h-4 w-4 text-cyan-400" />
-            <span>24-Hour Input Data Profile ({hours.length} Hours Defined)</span>
+            <Sliders className="h-3.5 w-3.5 text-zinc-500" />
+            <span>Customize 24-Hour Profile ({hours.length} hours)</span>
           </span>
-          {showHoursTable ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {showAdvancedHours ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
         </button>
 
-        {showHoursTable && (
-          <div className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-slate-800 bg-slate-950 p-2">
+        {showAdvancedHours && (
+          <div className="mt-3 max-h-56 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-2">
             <table className="w-full text-xs font-mono">
-              <thead className="text-slate-400">
+              <thead className="text-zinc-500 border-b border-zinc-900 pb-1">
                 <tr>
-                  <th className="p-1.5 text-left">Hour</th>
-                  <th className="p-1.5 text-right">Demand (kWh)</th>
-                  <th className="p-1.5 text-right">Solar (kWh)</th>
-                  <th className="p-1.5 text-right">Tariff (BDT)</th>
+                  <th className="p-1.5 text-left font-normal">Hour</th>
+                  <th className="p-1.5 text-right font-normal">Demand (kWh)</th>
+                  <th className="p-1.5 text-right font-normal">Solar (kWh)</th>
+                  <th className="p-1.5 text-right font-normal">Tariff (BDT)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-900 text-slate-200">
+              <tbody className="divide-y divide-zinc-900 text-zinc-300">
                 {hours.map((h, i) => (
                   <tr key={h.hour}>
-                    <td className="p-1.5 text-white font-bold">H{h.hour}</td>
+                    <td className="p-1 text-zinc-400">H{h.hour.toString().padStart(2, '0')}</td>
                     <td className="p-1 text-right">
                       <input
                         type="number"
                         value={h.demand_kwh}
                         onChange={(e) => updateHourField(i, 'demand_kwh', parseFloat(e.target.value) || 0)}
-                        className="w-20 rounded bg-slate-900 px-1.5 py-0.5 text-right text-xs text-white"
+                        className="w-16 rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-right text-xs text-white"
                       />
                     </td>
                     <td className="p-1 text-right">
@@ -310,7 +285,7 @@ export function ScenarioEditor({
                         type="number"
                         value={h.solar_kwh}
                         onChange={(e) => updateHourField(i, 'solar_kwh', parseFloat(e.target.value) || 0)}
-                        className="w-20 rounded bg-slate-900 px-1.5 py-0.5 text-right text-xs text-amber-400"
+                        className="w-16 rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-right text-xs text-amber-400"
                       />
                     </td>
                     <td className="p-1 text-right">
@@ -319,7 +294,7 @@ export function ScenarioEditor({
                         step="0.5"
                         value={h.tariff_bdt_per_kwh}
                         onChange={(e) => updateHourField(i, 'tariff_bdt_per_kwh', parseFloat(e.target.value) || 0)}
-                        className="w-20 rounded bg-slate-900 px-1.5 py-0.5 text-right text-xs text-emerald-400"
+                        className="w-16 rounded border border-zinc-800 bg-zinc-900 px-1.5 py-0.5 text-right text-xs text-emerald-400"
                       />
                     </td>
                   </tr>
@@ -330,22 +305,22 @@ export function ScenarioEditor({
         )}
       </div>
 
+      {/* Main Action Button */}
       <div className="pt-2">
         <button
           onClick={onOptimize}
           disabled={isLoading || operatorNotes.some((n) => !n.trim())}
-          className="flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 px-5 py-3.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all hover:opacity-95 disabled:opacity-50"
+          className="flex w-full items-center justify-center space-x-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition-all hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
         >
           {isLoading ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
-              <span>Interpreting Directives & Optimizing 24-Hour Dispatch...</span>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-950 border-t-transparent" />
+              <span>Optimizing 24-Hour Dispatch...</span>
             </>
           ) : (
             <>
-              <Play className="h-4 w-4 fill-slate-950" />
-              <span>Interpret Directives & Run Energy Optimizer</span>
-              <Sparkles className="h-4 w-4" />
+              <Play className="h-4 w-4 fill-zinc-950" />
+              <span>Optimize Schedule</span>
             </>
           )}
         </button>

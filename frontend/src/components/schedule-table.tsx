@@ -1,5 +1,4 @@
 import React from 'react';
-import { Table, CheckCircle2 } from 'lucide-react';
 import { HourlyPlanEntry, HourlyScenarioInput } from '../types/energy';
 
 interface ScheduleTableProps {
@@ -9,77 +8,71 @@ interface ScheduleTableProps {
 
 export function ScheduleTable({ plan, scenarioHours }: ScheduleTableProps) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-sm">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center space-x-2">
-          <Table className="h-5 w-5 text-cyan-400" />
-          <h3 className="font-semibold text-white">Full 24-Hour Dispatch & State Audit Table</h3>
-        </div>
-        <div className="flex items-center text-xs text-emerald-400">
-          <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-          Replay Verified
-        </div>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
+      <div className="px-4 py-3 border-b border-zinc-800/80 flex items-center justify-between">
+        <span className="text-xs font-medium text-white">24-Hour Dispatch Schedule</span>
+        <span className="text-[11px] text-zinc-500 font-mono">24 intervals audited</span>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-950/60 uppercase tracking-wider text-slate-400 font-semibold">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs font-mono">
+          <thead className="bg-zinc-950/60 text-zinc-400 text-[11px] border-b border-zinc-800/80">
             <tr>
-              <th className="px-3 py-2.5 rounded-l-lg">Hour</th>
-              <th className="px-3 py-2.5 text-right">Demand</th>
-              <th className="px-3 py-2.5 text-right">Solar (Gen)</th>
-              <th className="px-3 py-2.5 text-right">Solar (Used)</th>
-              <th className="px-3 py-2.5 text-center">Action</th>
-              <th className="px-3 py-2.5 text-right">Battery kWh</th>
-              <th className="px-3 py-2.5 text-right">Energy After</th>
-              <th className="px-3 py-2.5 text-right">Grid kWh</th>
-              <th className="px-3 py-2.5 text-right">Tariff</th>
-              <th className="px-3 py-2.5 text-right rounded-r-lg">Cost (BDT)</th>
+              <th className="px-3 py-2 text-left font-medium">Hour</th>
+              <th className="px-3 py-2 text-right font-medium">Demand</th>
+              <th className="px-3 py-2 text-right font-medium">Solar Gen</th>
+              <th className="px-3 py-2 text-right font-medium">Solar Used</th>
+              <th className="px-3 py-2 text-center font-medium font-sans">Action</th>
+              <th className="px-3 py-2 text-right font-medium">Battery kWh</th>
+              <th className="px-3 py-2 text-right font-medium">Energy After</th>
+              <th className="px-3 py-2 text-right font-medium">Grid kWh</th>
+              <th className="px-3 py-2 text-right font-medium">Tariff</th>
+              <th className="px-3 py-2 text-right font-medium">Cost (BDT)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 text-slate-300 font-mono">
+          <tbody className="divide-y divide-zinc-900 text-zinc-300">
             {plan.map((row, idx) => {
               const inputHour = scenarioHours[idx];
               const cost = row.grid_kwh * inputHour.tariff_bdt_per_kwh;
 
-              let actionBadgeColor = 'bg-slate-800 text-slate-400';
+              let actionBadgeColor = 'text-zinc-400 bg-zinc-800/60 border-zinc-700/60';
               if (row.battery_action === 'charge') {
-                actionBadgeColor = 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+                actionBadgeColor = 'text-cyan-300 bg-cyan-500/10 border-cyan-500/20';
               } else if (row.battery_action === 'discharge') {
-                actionBadgeColor = 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                actionBadgeColor = 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20';
               }
 
               return (
                 <tr
                   key={row.hour}
-                  className="transition-colors hover:bg-slate-800/40"
+                  className="hover:bg-zinc-800/30 transition-colors"
                 >
-                  <td className="px-3 py-2 font-bold text-white">
+                  <td className="px-3 py-1.5 text-zinc-400">
                     H{row.hour.toString().padStart(2, '0')}
                   </td>
-                  <td className="px-3 py-2 text-right">{inputHour.demand_kwh.toFixed(1)}</td>
-                  <td className="px-3 py-2 text-right text-amber-400/80">{inputHour.solar_kwh.toFixed(1)}</td>
-                  <td className="px-3 py-2 text-right font-semibold text-amber-300">
+                  <td className="px-3 py-1.5 text-right">{inputHour.demand_kwh.toFixed(1)}</td>
+                  <td className="px-3 py-1.5 text-right text-zinc-500">{inputHour.solar_kwh.toFixed(1)}</td>
+                  <td className="px-3 py-1.5 text-right text-amber-400 font-medium">
                     {row.solar_used_kwh.toFixed(1)}
                   </td>
-                  <td className="px-3 py-2 text-center font-sans">
+                  <td className="px-3 py-1.5 text-center font-sans">
                     <span
-                      className={`inline-block rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase ${actionBadgeColor}`}
+                      className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase ${actionBadgeColor}`}
                     >
                       {row.battery_action}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right">{row.battery_kwh.toFixed(1)}</td>
-                  <td className="px-3 py-2 text-right text-blue-300 font-medium">
+                  <td className="px-3 py-1.5 text-right">{row.battery_kwh.toFixed(1)}</td>
+                  <td className="px-3 py-1.5 text-right text-blue-400">
                     {row.battery_energy_after_kwh.toFixed(1)}
                   </td>
-                  <td className="px-3 py-2 text-right font-bold text-cyan-300">
+                  <td className="px-3 py-1.5 text-right font-medium text-cyan-300">
                     {row.grid_kwh.toFixed(1)}
                   </td>
-                  <td className="px-3 py-2 text-right text-slate-400">
+                  <td className="px-3 py-1.5 text-right text-zinc-500">
                     {inputHour.tariff_bdt_per_kwh.toFixed(1)}
                   </td>
-                  <td className="px-3 py-2 text-right font-bold text-white">
+                  <td className="px-3 py-1.5 text-right font-medium text-zinc-100">
                     {cost.toFixed(2)}
                   </td>
                 </tr>

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Bot, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { DirectiveInterpretation, SupportedDirectiveType } from '../types/energy';
 
 interface DirectivesPanelProps {
@@ -11,129 +10,104 @@ export function DirectivesPanel({ directives, operatorNotes }: DirectivesPanelPr
   const getBadgeColor = (type: SupportedDirectiveType) => {
     switch (type) {
       case 'solar_reduction':
-        return 'border-amber-500/30 bg-amber-500/10 text-amber-300';
+        return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
       case 'minimum_battery_reserve':
-        return 'border-blue-500/30 bg-blue-500/10 text-blue-300';
+        return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
       case 'no_charge_window':
-        return 'border-rose-500/30 bg-rose-500/10 text-rose-300';
+        return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
       case 'no_discharge_window':
-        return 'border-orange-500/30 bg-orange-500/10 text-orange-300';
+        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
       case 'max_grid_window':
-        return 'border-purple-500/30 bg-purple-500/10 text-purple-300';
+        return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
       case 'no_op':
-        return 'border-slate-600/30 bg-slate-700/20 text-slate-400';
+        return 'text-zinc-400 bg-zinc-800/40 border-zinc-700/40';
     }
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-sm">
-      <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
-        <Bot className="h-5 w-5 text-cyan-400" />
-        <h3 className="font-semibold text-white">
-          LLM Directive Interpretation & Guardrail Audit
-        </h3>
-      </div>
+    <div className="space-y-3">
+      {directives.map((dir) => {
+        const originalNote = operatorNotes[dir.note_index] || 'Operator note';
+        const adj = dir.structured_adjustment as Record<string, unknown> | null;
 
-      <div className="mt-4 space-y-3">
-        {directives.map((dir) => {
-          const originalNote = operatorNotes[dir.note_index] || 'Operator note';
-          const adj = dir.structured_adjustment as Record<string, unknown> | null;
-
-          return (
-            <div
-              key={dir.note_index}
-              className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4 transition-all hover:border-slate-700"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center space-x-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800 text-xs font-bold text-slate-300">
-                    #{dir.note_index}
-                  </span>
-                  <span
-                    className={`rounded-lg border px-2.5 py-0.5 text-xs font-mono font-semibold ${getBadgeColor(
-                      dir.directive_type
-                    )}`}
-                  >
-                    {dir.directive_type}
-                  </span>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  {dir.applies ? (
-                    <span className="flex items-center text-xs font-medium text-emerald-400">
-                      <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                      applies: true
-                    </span>
-                  ) : (
-                    <span className="flex items-center text-xs font-medium text-slate-400">
-                      <XCircle className="mr-1 h-3.5 w-3.5" />
-                      applies: false (no_op)
-                    </span>
-                  )}
-                </div>
+        return (
+          <div
+            key={dir.note_index}
+            className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2.5"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center space-x-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-[11px] font-mono text-zinc-400">
+                  {dir.note_index + 1}
+                </span>
+                <span
+                  className={`rounded-md border px-2 py-0.5 text-xs font-mono font-medium ${getBadgeColor(
+                    dir.directive_type
+                  )}`}
+                >
+                  {dir.directive_type}
+                </span>
               </div>
 
-              <div className="mt-2.5 rounded-lg bg-slate-900/50 p-2.5 text-xs text-slate-300 font-sans border border-slate-800/60">
-                <span className="font-semibold text-slate-400 mr-2">Input Note:</span>
-                &ldquo;{originalNote}&rdquo;
-              </div>
-
-              {dir.applies && adj && (
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs bg-slate-900/80 rounded-lg p-2.5 border border-slate-800">
-                  <span className="font-semibold text-slate-400">Structured Adjustment:</span>
-                  {Array.isArray(adj.hours) && (
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-slate-400">Hours:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {adj.hours.map((h: number) => (
-                          <span
-                            key={h}
-                            className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-cyan-300"
-                          >
-                            H{h}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {'factor' in adj && (
-                    <div className="flex items-center space-x-1">
-                      <span className="text-slate-400">Solar Factor:</span>
-                      <span className="font-mono font-bold text-amber-400">
-                        {String(adj.factor)}
-                      </span>
-                    </div>
-                  )}
-
-                  {'minimum_energy_kwh' in adj && (
-                    <div className="flex items-center space-x-1">
-                      <span className="text-slate-400">Min Reserve:</span>
-                      <span className="font-mono font-bold text-blue-400">
-                        {String(adj.minimum_energy_kwh)} kWh
-                      </span>
-                    </div>
-                  )}
-
-                  {'max_grid_kwh' in adj && (
-                    <div className="flex items-center space-x-1">
-                      <span className="text-slate-400">Max Grid:</span>
-                      <span className="font-mono font-bold text-purple-400">
-                        {String(adj.max_grid_kwh)} kWh
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-2.5 flex items-start space-x-2 text-xs text-slate-400">
-                <ArrowRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
-                <span className="italic">{dir.explanation}</span>
-              </div>
+              <span
+                className={`text-xs font-medium flex items-center ${
+                  dir.applies ? 'text-emerald-400' : 'text-zinc-500'
+                }`}
+              >
+                <span
+                  className={`inline-block h-1.5 w-1.5 rounded-full mr-1.5 ${
+                    dir.applies ? 'bg-emerald-400' : 'bg-zinc-500'
+                  }`}
+                />
+                {dir.applies ? 'Applied' : 'No-op (Ignored)'}
+              </span>
             </div>
-          );
-        })}
-      </div>
+
+            <p className="text-xs text-zinc-300 font-sans">
+              <span className="text-zinc-500 mr-1.5">Note:</span>
+              &ldquo;{originalNote}&rdquo;
+            </p>
+
+            {dir.applies && adj && (
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                {Array.isArray(adj.hours) && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-zinc-500">Hours:</span>
+                    <span className="font-mono text-zinc-200">
+                      [{adj.hours.map((h: number) => `H${h}`).join(', ')}]
+                    </span>
+                  </div>
+                )}
+
+                {'factor' in adj && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-zinc-500">Factor:</span>
+                    <span className="font-mono font-medium text-amber-300">{String(adj.factor)}</span>
+                  </div>
+                )}
+
+                {'minimum_energy_kwh' in adj && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-zinc-500">Min Reserve:</span>
+                    <span className="font-mono font-medium text-blue-300">{String(adj.minimum_energy_kwh)} kWh</span>
+                  </div>
+                )}
+
+                {'max_grid_kwh' in adj && (
+                  <div className="flex items-center space-x-1">
+                    <span className="text-zinc-500">Max Grid:</span>
+                    <span className="font-mono font-medium text-purple-300">{String(adj.max_grid_kwh)} kWh</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-[11px] text-zinc-500 italic">
+              {dir.explanation}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

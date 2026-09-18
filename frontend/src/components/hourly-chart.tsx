@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BarChart3 } from 'lucide-react';
 import { HourlyPlanEntry, HourlyScenarioInput, BatteryConfig } from '../types/energy';
 
 interface HourlyChartProps {
@@ -20,56 +19,55 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
     100
   );
 
-  const chartHeight = 220;
+  const chartHeight = 200;
   const chartWidth = 720;
-  const barWidth = 16;
+  const barWidth = 14;
   const colSpacing = chartWidth / 24;
 
   const hoveredPlan = hoveredHour !== null ? plan[hoveredHour] : null;
   const hoveredInput = hoveredHour !== null ? scenarioHours[hoveredHour] : null;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-        <div className="flex items-center space-x-2">
-          <BarChart3 className="h-5 w-5 text-emerald-400" />
-          <h3 className="font-semibold text-white">24-Hour Energy Dispatch & Storage Profile</h3>
-        </div>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-4">
+      {/* Legend */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/80">
+        <span className="text-xs font-medium text-white">24-Hour Dispatch Profile</span>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs">
+        <div className="flex flex-wrap items-center gap-4 text-[11px] text-zinc-400">
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-sm bg-cyan-500" />
-            <span className="text-slate-300">Grid Import</span>
+            <span className="h-2.5 w-2.5 rounded-sm bg-cyan-500" />
+            <span>Grid</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-sm bg-amber-400" />
-            <span className="text-slate-300">Solar Used</span>
+            <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" />
+            <span>Solar</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-sm bg-emerald-500" />
-            <span className="text-slate-300">Battery Discharge</span>
+            <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />
+            <span>Battery Discharge</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="h-0.5 w-3 bg-rose-400" />
-            <span className="text-slate-300">Demand Curve</span>
+            <span>Demand</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="h-0.5 w-3 bg-blue-400 border-b border-dashed" />
-            <span className="text-slate-300">Battery Energy (SOC)</span>
+            <span>Battery Energy</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-4 overflow-x-auto pb-2">
-        <div className="min-w-[720px]">
-          <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 40}`} className="w-full overflow-visible">
-            <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#334155" strokeWidth="1" />
-            <line x1="0" y1={chartHeight / 2} x2={chartWidth} y2={chartHeight / 2} stroke="#1e293b" strokeDasharray="3 3" />
+      {/* SVG Chart */}
+      <div className="overflow-x-auto">
+        <div className="min-w-[700px]">
+          <svg viewBox={`0 0 ${chartWidth} ${chartHeight + 32}`} className="w-full overflow-visible">
+            {/* Grid line */}
+            <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#27272a" strokeWidth="1" />
+            <line x1="0" y1={chartHeight / 2} x2={chartWidth} y2={chartHeight / 2} stroke="#18181b" strokeDasharray="3 3" />
 
             {Array.from({ length: 24 }).map((_, h) => {
               const xCenter = h * colSpacing + colSpacing / 2;
               const p = plan[h];
-              const inp = scenarioHours[h];
 
               const gridHeight = (p.grid_kwh / maxEnergy) * chartHeight;
               const solarHeight = (p.solar_used_kwh / maxEnergy) * chartHeight;
@@ -95,8 +93,8 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
                       y="0"
                       width={colSpacing}
                       height={chartHeight}
-                      fill="#334155"
-                      opacity="0.25"
+                      fill="#27272a"
+                      opacity="0.5"
                     />
                   )}
 
@@ -135,10 +133,10 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
 
                   <text
                     x={xCenter}
-                    y={chartHeight + 16}
+                    y={chartHeight + 14}
                     textAnchor="middle"
-                    fill={isHovered ? '#38bdf8' : '#64748b'}
-                    fontSize="10"
+                    fill={isHovered ? '#ffffff' : '#71717a'}
+                    fontSize="9"
                     fontFamily="monospace"
                   >
                     {h}
@@ -147,10 +145,11 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
               );
             })}
 
+            {/* Demand line */}
             <polyline
               fill="none"
               stroke="#f43f5e"
-              strokeWidth="2"
+              strokeWidth="1.5"
               points={scenarioHours
                 .map((h, idx) => {
                   const x = idx * colSpacing + colSpacing / 2;
@@ -160,10 +159,11 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
                 .join(' ')}
             />
 
+            {/* Battery state line */}
             <polyline
               fill="none"
               stroke="#60a5fa"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeDasharray="4 3"
               points={plan
                 .map((p, idx) => {
@@ -177,27 +177,23 @@ export function HourlyChart({ plan, scenarioHours, battery }: HourlyChartProps) 
         </div>
       </div>
 
+      {/* Hover Info Tooltip */}
       {hoveredHour !== null && hoveredPlan && hoveredInput && (
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-950/80 p-3 text-xs border border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-zinc-950 px-3 py-2 text-xs border border-zinc-800 font-mono">
           <div className="flex items-center space-x-2">
-            <span className="rounded bg-slate-800 px-2 py-0.5 font-mono font-bold text-cyan-400">
-              Hour {hoveredHour}:00 - {hoveredHour + 1}:00
+            <span className="text-zinc-200 font-semibold">
+              H{hoveredHour.toString().padStart(2, '0')}:00
             </span>
-            <span className="text-slate-400">Demand:</span>
-            <span className="font-bold text-rose-400">{hoveredInput.demand_kwh} kWh</span>
-            <span className="text-slate-400">Tariff:</span>
-            <span className="font-bold text-amber-400">{hoveredInput.tariff_bdt_per_kwh} BDT</span>
+            <span className="text-zinc-500">|</span>
+            <span className="text-zinc-400">Demand: <span className="text-rose-400">{hoveredInput.demand_kwh} kWh</span></span>
+            <span className="text-zinc-400">Tariff: <span className="text-amber-400">{hoveredInput.tariff_bdt_per_kwh} BDT</span></span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-cyan-300">Grid: {hoveredPlan.grid_kwh} kWh</span>
-            <span className="text-amber-300">Solar: {hoveredPlan.solar_used_kwh} kWh</span>
-            <span className="text-emerald-300">
-              Battery: {hoveredPlan.battery_action} ({hoveredPlan.battery_kwh} kWh)
-            </span>
-            <span className="text-blue-300">
-              SOC After: {hoveredPlan.battery_energy_after_kwh} kWh
-            </span>
+          <div className="flex flex-wrap items-center gap-3 text-zinc-300">
+            <span>Grid: <span className="text-cyan-400">{hoveredPlan.grid_kwh.toFixed(1)}</span></span>
+            <span>Solar: <span className="text-amber-400">{hoveredPlan.solar_used_kwh.toFixed(1)}</span></span>
+            <span>Battery: <span className="text-emerald-400">{hoveredPlan.battery_action} ({hoveredPlan.battery_kwh.toFixed(1)})</span></span>
+            <span>Energy After: <span className="text-blue-400">{hoveredPlan.battery_energy_after_kwh.toFixed(1)}</span></span>
           </div>
         </div>
       )}
