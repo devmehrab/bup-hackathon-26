@@ -2,15 +2,15 @@ import { createApp } from './app';
 import { env } from './config/env';
 import { connectDatabase } from './infrastructure/database/connection';
 import { LLMProvider } from './infrastructure/llm/llm-provider.interface';
-import { GroqLLMProvider } from './infrastructure/llm/groq-llm.provider';
+import { GeminiLLMProvider } from './infrastructure/llm/gemini-llm.provider';
 import { MockLLMProvider } from './infrastructure/llm/mock-llm.provider';
 
 async function bootstrap(): Promise<void> {
   await connectDatabase(env.MONGODB_URI);
 
   let llmProvider: LLMProvider;
-  if (env.GROQ_API_KEY && env.GROQ_API_KEY.trim().length > 0) {
-    llmProvider = new GroqLLMProvider(env.GROQ_API_KEY, env.GROQ_MODEL);
+  if (env.GEMINI_API_KEY && env.GEMINI_API_KEY.trim().length > 0) {
+    llmProvider = new GeminiLLMProvider(env.GEMINI_API_KEY, env.GEMINI_MODEL);
   } else {
     llmProvider = new MockLLMProvider();
   }

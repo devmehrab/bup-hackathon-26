@@ -1,15 +1,15 @@
-import Groq from 'groq-sdk';
+import { GoogleGenAI } from '@google/genai';
 import { LLMProvider, InterpretationContext } from './llm-provider.interface';
 import { DirectiveInterpretation } from '../../modules/optimization/domain/types';
 import { OPERATOR_NOTES_SYSTEM_PROMPT } from '../../modules/operator-notes/prompts/operator-notes-prompt';
 import { LLMInterpretationError } from '../../shared/errors/app-error';
 
-export class GroqLLMProvider implements LLMProvider {
-  private client: Groq;
+export class GeminiLLMProvider implements LLMProvider {
+  private ai: GoogleGenAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'llama-3.3-70b-versatile') {
-    this.client = new Groq({ apiKey });
+  constructor(apiKey: string, model: string = 'gemini-2.5-flash') {
+    this.ai = new GoogleGenAI({ apiKey });
     this.model = model;
   }
 
@@ -31,28 +31,27 @@ export class GroqLLMProvider implements LLMProvider {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const completion = await this.client.chat.completions.create({
-          messages: [
-            {
-              role: 'system',
-              content: OPERATOR_NOTES_SYSTEM_PROMPT
-            },
-            {
-              role: 'user',
-              content: userPrompt
-            }
-          ],
+        const response = await this.ai.models.generateContent({
           model: this.model,
-          temperature: 0.0,
-          response_format: { type: 'json_object' }
+          contents: userPrompt,
+          config: {
+            systemInstruction: OPERATOR_NOTES_SYSTEM_PROMPT,
+            temperature: 0.0,
+            responseMimeType: 'application/json'
+          }
         });
 
-        rawContent = completion.choices[0]?.message?.content ?? '';
+        rawContent = response.text ?? '';
         if (!rawContent) {
-          throw new Error('Received empty response from Groq API');
+          throw new Error('Received empty response from Gemini API');
         }
 
-        const parsed = JSON.parse(rawContent);
+        const cleanedContent = rawContent
+          .replace(/^```(?:json)?\s*/i, '')
+          .replace(/\s*```$/i, '')
+          .trim();
+
+        const parsed = JSON.parse(cleanedContent);
         const directives = Array.isArray(parsed)
           ? parsed
           : Array.isArray(parsed.directives)

@@ -7,8 +7,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(8000),
   MONGODB_URI: z.string().default('mongodb://127.0.0.1:27017/bup_energy'),
-  GROQ_API_KEY: z.string().default(''),
-  GROQ_MODEL: z.string().default('llama-3.3-70b-versatile')
+  GEMINI_API_KEY: z.string().default(''),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash')
 });
 
 const parsed = envSchema.safeParse(process.env);
