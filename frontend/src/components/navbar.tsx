@@ -41,9 +41,6 @@ export function Navbar() {
             <span className="text-sm font-semibold tracking-tight text-white">
               BUP Energy Optimizer
             </span>
-            <span className="hidden sm:inline-block rounded-md bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-              CSE FEST 2026
-            </span>
           </div>
         </div>
 

@@ -118,31 +118,28 @@ export default function Home() {
               <div className="flex items-center space-x-1 bg-zinc-900/80 border border-zinc-800 p-1 rounded-lg">
                 <button
                   onClick={() => setActiveTab('chart')}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                    activeTab === 'chart'
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${activeTab === 'chart'
                       ? 'bg-zinc-800 text-white shadow-sm font-semibold'
                       : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
+                    }`}
                 >
                   Dispatch Chart
                 </button>
                 <button
                   onClick={() => setActiveTab('directives')}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                    activeTab === 'directives'
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${activeTab === 'directives'
                       ? 'bg-zinc-800 text-white shadow-sm font-semibold'
                       : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
+                    }`}
                 >
                   Directives ({result.directive_interpretation.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('table')}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
-                    activeTab === 'table'
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${activeTab === 'table'
                       ? 'bg-zinc-800 text-white shadow-sm font-semibold'
                       : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
+                    }`}
                 >
                   Hourly Schedule
                 </button>
@@ -180,7 +177,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-zinc-800/80 py-4 text-center text-xs text-zinc-600">
-        BUP CSE Fest 2026 Hackathon &bull; Dept. of CSE, Bangladesh University of Professionals
+        TEAM F1N4LB0SS &bull; BUP HACKATHON 2026
       </footer>
     </div>
   );
