@@ -11,7 +11,7 @@ The system implements the strict end-to-end pipeline specified in the Problem St
 ```
 Natural Language Operator Notes
               ↓
-   Gemini LLM Interpretation (LLMProvider)
+   Groq LLM Interpretation (LLMProvider)
               ↓
   Deterministic Guardrail Validation (Zod)
               ↓
@@ -27,7 +27,7 @@ Natural Language Operator Notes
 ```
 
 ### Core Architecture Principles:
-- **LLM Isolation**: The Gemini language model is strictly confined to interpreting natural-language notes into structured machine-checkable directives. The LLM never computes math, battery states, energy balances, or schedules.
+- **LLM Isolation**: The Groq language model is strictly confined to interpreting natural-language notes into structured machine-checkable directives. The LLM never computes math, battery states, energy balances, or schedules.
 - **Zero-Dependency Simplex Optimizer**: Mathematical optimization is solved using a pure TypeScript two-phase Simplex Linear Programming engine (`LPSolver`). This provides microsecond latency, zero native binary compilation issues, and 100% deterministic reproducibility across all platforms.
 - **Single Battery Action Guarantee**: The optimizer guarantees that in every hour, the battery takes exactly one action (`charge`, `discharge`, or `idle`), with `battery_kwh = 0` when `idle`.
 - **Independent Schedule Replay Validator**: Schedule outputs are replayed hour-by-hour by an independent auditor that recalculates `total_grid_kwh`, `total_cost_bdt`, and `peak_grid_kwh`, and strictly verifies energy balance, rate limits, battery bounds, and end-of-day neutrality within 0.01 tolerance.
@@ -57,8 +57,8 @@ Time windows use whole-hour intervals with inclusive start and exclusive end (e.
 |---|---|---|---|
 | `PORT` | Optional | `8000` | HTTP port for the backend API |
 | `MONGODB_URI` | Optional | `mongodb://127.0.0.1:27017/bup_energy` | MongoDB connection string |
-| `GEMINI_API_KEY` | Recommended | `""` | Gemini API Key for operator note interpretation. If omitted, the system falls back to `MockLLMProvider` for deterministic testing. |
-| `GEMINI_MODEL` | Optional | `gemini-2.5-flash` | Gemini model identifier |
+| `GROQ_API_KEY` | Recommended | `""` | Groq API Key for operator note interpretation. If omitted, the system falls back to `MockLLMProvider` for deterministic testing. |
+| `GROQ_MODEL` | Optional | `llama-3.3-70b-versatile` | Groq model identifier |
 
 ### Frontend Configuration
 | Variable | Required | Default | Description |
@@ -85,7 +85,7 @@ cd bup-cse-fest-2026-energy-optimizer
 cd backend
 npm install
 cp .env.example .env
-# Edit .env and supply GEMINI_API_KEY if testing with live Gemini models
+# Edit .env and supply GROQ_API_KEY if testing with live Groq models
 
 npm run dev
 # The backend will start on http://0.0.0.0:8000
@@ -135,7 +135,7 @@ Services exposed:
 ### Build & Run Backend Standalone Container
 ```bash
 docker build -t bup-energy-backend:latest ./backend
-docker run -p 8000:8000 -e GEMINI_API_KEY="your-gemini-key" bup-energy-backend:latest
+docker run -p 8000:8000 -e GROQ_API_KEY="your-groq-key" bup-energy-backend:latest
 ```
 
 ---
@@ -256,7 +256,7 @@ Expected Response Format:
 
 - **Node.js & Express**: Core HTTP API server.
 - **TypeScript**: Strict type safety across backend and frontend.
-- **Google Gen AI SDK (`@google/genai`)**: Fast inference engine for natural language operator note interpretation via Google Gemini.
+- **Groq SDK (`groq-sdk`)**: Fast inference engine for natural language operator note interpretation via Groq (llama-3.3-70b-versatile).
 - **Zod**: Deterministic runtime schema guardrails.
 - **Next.js & Tailwind CSS**: Modern App Router operator dashboard.
 - **Lucide React**: Clean SVG iconography.

@@ -1,15 +1,15 @@
-import { GoogleGenAI } from '@google/genai';
+import Groq from 'groq-sdk';
 import { LLMProvider, InterpretationContext } from './llm-provider.interface';
 import { DirectiveInterpretation } from '../../modules/optimization/domain/types';
 import { OPERATOR_NOTES_SYSTEM_PROMPT } from '../../modules/operator-notes/prompts/operator-notes-prompt';
 import { LLMInterpretationError } from '../../shared/errors/app-error';
 
-export class GeminiLLMProvider implements LLMProvider {
-  private ai: GoogleGenAI;
+export class GroqLLMProvider implements LLMProvider {
+  private client: Groq;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gemini-2.5-flash') {
-    this.ai = new GoogleGenAI({ apiKey });
+  constructor(apiKey: string, model: string = 'llama-3.3-70b-versatile') {
+    this.client = new Groq({ apiKey });
     this.model = model;
   }
 
@@ -31,19 +31,25 @@ export class GeminiLLMProvider implements LLMProvider {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await this.ai.models.generateContent({
+        const completion = await this.client.chat.completions.create({
+          messages: [
+            {
+              role: 'system',
+              content: OPERATOR_NOTES_SYSTEM_PROMPT
+            },
+            {
+              role: 'user',
+              content: userPrompt
+            }
+          ],
           model: this.model,
-          contents: userPrompt,
-          config: {
-            systemInstruction: OPERATOR_NOTES_SYSTEM_PROMPT,
-            temperature: 0.0,
-            responseMimeType: 'application/json'
-          }
+          temperature: 0.0,
+          response_format: { type: 'json_object' }
         });
 
-        rawContent = response.text ?? '';
+        rawContent = completion.choices[0]?.message?.content ?? '';
         if (!rawContent) {
-          throw new Error('Received empty response from Gemini API');
+          throw new Error('Received empty response from Groq API');
         }
 
         const cleanedContent = rawContent
